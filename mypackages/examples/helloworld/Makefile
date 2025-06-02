@@ -12,7 +12,7 @@ $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
 
 # Compile source files into object files
-src/%.o: src/%.c
+src/%.o: src%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Clean up build files
