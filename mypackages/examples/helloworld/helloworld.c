@@ -1,7 +1,8 @@
 #include <stdio.h>
- 
+#include "helper.h"
+
 int main(void)
 {
-    printf("\nHello, world!\n\n");
+    print_hello();
     return 0;
 }
