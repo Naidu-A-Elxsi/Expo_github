@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - Development
-    types: [opened, synchronize, reopened]
 
 jobs:
   commitlint:
@@ -12,17 +11,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Lint commit messages
-        uses: amannn/action-commit-lint@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          commitPattern: '^\[Taurus-\d+\]: .+\n\nIssue:\nRootCause:\nFix:\nTesting:\n\nSigned-off-by: .+ <.+>$'
-          errorMessage: |
-            ❌ Commit message does not follow the required format:
-            [Taurus-<issue-number>]: <Short summary>
+          node-version: '18'
 
-            Issue:
-            RootCause:
-            Fix:
-            Testing:
+      - name: Install commitlint
+        run: |
+          npm install --save-dev @commitlint/{config-conventional,cli}
 
-            Signed-off-by: <Name> <email>
+      - name: Create commitlint config
+        run: |
+          echo "module.exports = { rules: { 'header-pattern': [2, 'always', /^\[Taurus-\d+\]: .+\n\nIssue:\nRootCause:\nFix:\nTesting:\n\nSigned-off-by: .+ <.+>$/] } };" > commitlint.config.js
+
+      - name: Lint commits
+        run: |
+          git log origin/development..HEAD --pretty=format:%s | npx commitlint
