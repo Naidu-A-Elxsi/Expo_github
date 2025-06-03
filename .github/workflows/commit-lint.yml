@@ -1,0 +1,28 @@
+name: Lint Commit Messages
+
+on:
+  pull_request:
+    branches:
+      - Development
+    types: [opened, synchronize, reopened]
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint commit messages
+        uses: amannn/action-commit-lint@v5
+        with:
+          commitPattern: '^\[Taurus-\d+\]: .+\n\nIssue:\nRootCause:\nFix:\nTesting:\n\nSigned-off-by: .+ <.+>$'
+          errorMessage: |
+            ❌ Commit message does not follow the required format:
+            [Taurus-<issue-number>]: <Short summary>
+
+            Issue:
+            RootCause:
+            Fix:
+            Testing:
+
+            Signed-off-by: <Name> <email>
