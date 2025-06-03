@@ -1,31 +1,35 @@
 name: Lint Commit Messages
 
 on:
-  pull_request:
-    branches:
-      - Development
+  pull_request:
+    branches:
+      - Development
 
 jobs:
-  commitlint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history
+          ref: ${{ github.event.pull_request.head.ref }}  # Ensure correct branch is checked out
 
-      - name: Fetch all branches
-        run: git fetch --all
+      - name: Fetch all branches
+        run: git fetch --all
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-      - name: Install commitlint
-        run: |
-          npm install --save-dev @commitlint/{config-conventional,cli}
+      - name: Install commitlint
+        run: |
+          npm install --save-dev @commitlint/{config-conventional,cli}
 
-      - name: Create commitlint config
-        run: |
-          echo "module.exports = { rules: { 'header-pattern': [2, 'always', /^\[Taurus-\d+\]: .+\n\nIssue:\nRootCause:\nFix:\nTesting:\n\nSigned-off-by: .+ <.+>$/] } };" > commitlint.config.js
+      - name: Create commitlint config
+        run: |
+          echo "module.exports = { rules: { 'header-pattern': [2, 'always', /^\[Taurus-\d+\]: .+\n\nIssue:\nRootCause:\nFix:\nTesting:\n\nSigned-off-by: .+ <.+>$/] } };" > commitlint.config.js
 
       - name: Lint commits
         run: |
