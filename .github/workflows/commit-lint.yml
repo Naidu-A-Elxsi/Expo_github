@@ -31,6 +31,6 @@ jobs:
         run: |
           echo "module.exports = { rules: { 'header-pattern': [2, 'always', /^\[Taurus-\d+\]: .+\n\nIssue:\nRootCause:\nFix:\nTesting:\n\nSigned-off-by: .+ <.+>$/] } };" > commitlint.config.js
 
-      - name: Lint commits
+      -  name: Lint commits
         run: |
           npx commitlint --from=origin/development --to=HEAD
