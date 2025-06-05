@@ -1,3 +1,4 @@
+---
 name: Lint Commit Messages
 
 on:
@@ -10,32 +11,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref }}
+        uses: actions/checkout@v3
 
       - name: Fetch all branches
         run: git fetch --all
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
 
       - name: Install commitlint
-        run: |
-          npm install --save-dev @commitlint/config-conventional @commitlint/cli
+        run: "npm install --save-dev @commitlint/{cli,config-conventional}"
 
       - name: Create commitlint config
         run: |
-          echo "module.exports = {
+          cat << 'EOF' > commitlint.config.js
+          const headerPattern = /^\[Taurus-\d+\]: .+$/;
+          const bodyPattern = /^([\s\S]+)\n\nSigned-off-by: .+ <.+>$/;
+          module.exports = {
             rules: {
-              'header-pattern': [2, 'always', /^\[Taurus-\d+\]: .+\n\nIssue:\nRootCause:\nFix:\nTesting:\n\nSigned-off-by: .+ <.+>$/]
+              'header-pattern': [2, 'always', headerPattern],
+              'header-max-length': [2, 'always', 100],
+              'body-pattern': [2, 'always', bodyPattern]
             }
-          };" > commitlint.config.js
+          };
+          EOF
 
-      -  name: Lint commits
-        run: |
-          npx commitlint --from=origin/Development --to=HEAD
+      - name: Show commit messages
+        run: git log origin/Development..HEAD --pretty=format:"%h %s%n%b%n"
 
+      - name: Lint commits
+        run: npx commitlint --from=origin/Development --to=HEAD --verbose
