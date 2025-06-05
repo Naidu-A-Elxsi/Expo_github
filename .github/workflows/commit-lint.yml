@@ -41,5 +41,13 @@ jobs:
       - name: Show commit messages
         run: git log origin/Development..HEAD --pretty=format:"%h %s%n%b%n"
 
+      - name: Show config file
+        run: cat commitlint.config.js
+
       - name: Lint commits
-        run: npx commitlint --from=origin/Development --to=HEAD --verbose
+        run: >
+          npx commitlint
+          --from=origin/Development
+          --to=HEAD
+          --verbose
+          --config=./commitlint.config.js
