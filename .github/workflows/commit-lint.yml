@@ -20,11 +20,13 @@ jobs:
             first_line=$(echo "$message" | head -n 1)
             last_line=$(echo "$message" | tail -n 1)
 
+            # Check the format of the first line
             if ! echo "$first_line" | grep -qE "^\[Taurus-[0-9]+\]:"; then
               echo "::error ::Commit $commit has an invalid first line: $first_line"
               invalid=1
             fi
 
+            # Check the format of the last line
             if ! echo "$last_line" | grep -qE "^Signed-off-by: .+ <.+@tataelxsi\.co\.in>$"; then
               echo "::error ::Commit $commit has an invalid Signed-off-by line: $last_line"
               invalid=1
