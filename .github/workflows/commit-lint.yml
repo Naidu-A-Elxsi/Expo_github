@@ -1,61 +1,34 @@
----
 name: 🚦 Commit Format Check
 on:
  pull_request:
    branches:
      - development
 jobs:
- check-commit-messages:
-   name: 🧪 Validate All Commits in PR
+ check_commits:
+   name: ✅ check-commits  # <--- THIS is the name that shows in the UI
    runs-on: ubuntu-latest
    steps:
-     - name: 📥 Checkout PR code
+     - name: Checkout code
        uses: actions/checkout@v3
        with:
-         fetch-depth: 0  # Required to get full commit history
-     - name: 🔍 Validate each commit message in PR
+         fetch-depth: 0
+     - name: Validate commit messages
        run: |
-         echo "🔍 Checking all commits targeting 'development' branch..."
-         BASE_BRANCH="origin/${{ github.base_ref }}"
-         HEAD_BRANCH="HEAD"
-         COMMITS=$(git log $BASE_BRANCH..$HEAD_BRANCH --pretty=format:"%H")
-         echo "$COMMITS" > commit_list.txt
+         COMMITS=$(git log origin/${{ github.base_ref }}..HEAD --pretty=format:"%H")
          VALID=true
-         while read -r commit; do
-           echo "🔸 Checking commit: $commit"
-           COMMIT_MSG=$(git log -1 --pretty=%B "$commit")
-           echo "🔹 Commit message:"
-           echo "--------------------"
-           echo "$COMMIT_MSG"
-           echo "--------------------"
-           echo "$COMMIT_MSG" | grep -Eq "^\[Taurus-[0-9]+\]: .+" || {
-             echo "❌ [$commit] Invalid summary format: should start with [Taurus-<number>]:"
-             VALID=false
-           }
-           echo "$COMMIT_MSG" | grep -q "Issue:" || {
-             echo "❌ [$commit] Missing 'Issue:' section"
-             VALID=false
-           }
-           echo "$COMMIT_MSG" | grep -q "RootCause:" || {
-             echo "❌ [$commit] Missing 'RootCause:' section"
-             VALID=false
-           }
-           echo "$COMMIT_MSG" | grep -q "Fix:" || {
-             echo "❌ [$commit] Missing 'Fix:' section"
-             VALID=false
-           }
-           echo "$COMMIT_MSG" | grep -q "Testing:" || {
-             echo "❌ [$commit] Missing 'Testing:' section"
-             VALID=false
-           }
-           echo "$COMMIT_MSG" | grep -q "Signed-off-by:" || {
-             echo "❌ [$commit] Missing 'Signed-off-by:' line"
-             VALID=false
-           }
-         done < commit_list.txt
+         for commit in $COMMITS; do
+           MSG=$(git log -1 --pretty=%B "$commit")
+           echo "Checking commit: $commit"
+           echo "$MSG" | grep -Eq "^\[Taurus-[0-9]+\]: .+" || VALID=false
+           echo "$MSG" | grep -q "Issue:" || VALID=false
+           echo "$MSG" | grep -q "RootCause:" || VALID=false
+           echo "$MSG" | grep -q "Fix:" || VALID=false
+           echo "$MSG" | grep -q "Testing:" || VALID=false
+           echo "$MSG" | grep -q "Signed-off-by:" || VALID=false
+         done
          if [ "$VALID" = false ]; then
-           echo "❌ One or more commits did not meet the format requirements."
+           echo "❌ Invalid commit format"
            exit 1
          else
-           echo "✅ All commits are valid."
+           echo "✅ All commit messages are valid"
          fi
