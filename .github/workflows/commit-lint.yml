@@ -1,53 +1,39 @@
----
-name: Lint Commit Messages
+name: Validate Commit Messages
 
 on:
-  pull_request:
+  push:
     branches:
-      - Development
+      - development
 
 jobs:
-  commitlint:
+  check-commits:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Fetch all branches
-        run: git fetch --all
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install commitlint
-        run: "npm install --save-dev @commitlint/{cli,config-conventional}"
-
-      - name: Create commitlint config
+      - name: Validate commit messages
         run: |
-          cat << 'EOF' > commitlint.config.js
-          const headerPattern = /^\[Taurus-\d+\]: .+$/;
-          const bodyPattern = /^([\s\S]+)\n\nSigned-off-by: .+ <.+>$/;
-          module.exports = {
-            rules: {
-              'header-pattern': [2, 'always', headerPattern],
-              'header-max-length': [2, 'always', 100],
-              'body-pattern': [2, 'always', bodyPattern]
-            }
-          };
-          EOF
+          invalid=0
+          for commit in $(git rev-list ${{ github.event.before }}..${{ github.event.after }}); do
+            message=$(git log --format=%B -n 1 $commit)
+            first_line=$(echo "$message" | head -n 1)
+            last_line=$(echo "$message" | tail -n 1)
 
-      - name: Show commit messages
-        run: git log origin/Development..HEAD --pretty=format:"%h %s%n%b%n"
+            if ! echo "$first_line" | grep -qE "^\[Taurus-[0-9]+\]:"; then
+              echo "::error ::Commit $commit has an invalid first line: $first_line"
+              invalid=1
+            fi
 
-      - name: Show config file
-        run: cat commitlint.config.js
+            if ! echo "$last_line" | grep -qE "^Signed-off-by: .+ <.+@tataelxsi\.co\.in>$"; then
+              echo "::error ::Commit $commit has an invalid Signed-off-by line: $last_line"
+              invalid=1
+            fi
+          done
 
-      - name: Lint commits
-        run: >
-          npx commitlint
-          --from=origin/Development
-          --to=HEAD
-          --verbose
-          --config=./commitlint.config.js
+          if [ "$invalid" -eq 1 ]; then
+            echo "❌ Commit message validation failed."
+            exit 1
+          else
+            echo "✅ All commit messages are valid."
+          fi
