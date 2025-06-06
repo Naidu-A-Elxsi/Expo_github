@@ -4,8 +4,8 @@ on:
    branches:
      - development
 jobs:
- check_commits:
-   name: ✅ check-commits-n  # <--- THIS is the name that shows in the UI
+ commits_check_n:
+   name: ✅ commits_check_n  # <--- THIS is the name that shows in the UI
    runs-on: ubuntu-latest
    steps:
      - name: Checkout code
