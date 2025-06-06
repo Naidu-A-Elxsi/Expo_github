@@ -2,3 +2,4 @@ Build server	No of cores	RAM	Time taken to compile
 Lenovo ThinkStation(Wifi6E )	24	32GB	47 minutes, and 1 second
 Lenovo Think Center(Wifi6E)	28	32GB	50 minutes, and 43 seconds
 Asus Desktop Mini PC(wifi7)	16	32GB	40 minutes, and 32 seconds
+Nothing
