@@ -1,0 +1,1 @@
+ https://github.com/kata-containers/community/blob/main/CONTRIBUTING.md#patch-format
