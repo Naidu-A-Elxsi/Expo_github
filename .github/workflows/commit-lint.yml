@@ -1,34 +1,53 @@
-name: 🚦 Commit Format Check
+---
+name: Lint Commit Messages
+
 on:
- pull_request:
-   branches:
-     - development
+  pull_request:
+    branches:
+      - Development
+
 jobs:
- commits_check_n:
-   name: ✅ commits_check_n  # <--- THIS is the name that shows in the UI
-   runs-on: ubuntu-latest
-   steps:
-     - name: Checkout code
-       uses: actions/checkout@v3
-       with:
-         fetch-depth: 0
-     - name: Validate commit messages
-       run: |
-         COMMITS=$(git log origin/${{ github.base_ref }}..HEAD --pretty=format:"%H")
-         VALID=true
-         for commit in $COMMITS; do
-           MSG=$(git log -1 --pretty=%B "$commit")
-           echo "Checking commit: $commit"
-           echo "$MSG" | grep -Eq "^\[Taurus-[0-9]+\]: .+" || VALID=false
-           echo "$MSG" | grep -q "Issue:" || VALID=false
-           echo "$MSG" | grep -q "RootCause:" || VALID=false
-           echo "$MSG" | grep -q "Fix:" || VALID=false
-           echo "$MSG" | grep -q "Testing:" || VALID=false
-           echo "$MSG" | grep -q "Signed-off-by:" || VALID=false
-         done
-         if [ "$VALID" = false ]; then
-           echo "❌ Invalid commit format"
-           exit 1
-         else
-           echo "✅ All commit messages are valid"
-         fi
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Fetch all branches
+        run: git fetch --all
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install commitlint
+        run: "npm install --save-dev @commitlint/{cli,config-conventional}"
+
+      - name: Create commitlint config
+        run: |
+          cat << 'EOF' > commitlint.config.js
+          const headerPattern = /^\[Taurus-\d+\]: .+$/;
+          const bodyPattern = /^([\s\S]+)\n\nSigned-off-by: .+ <.+>$/;
+          module.exports = {
+            rules: {
+              'header-pattern': [2, 'always', headerPattern],
+              'header-max-length': [2, 'always', 100],
+              'body-pattern': [2, 'always', bodyPattern]
+            }
+          };
+          EOF
+
+      - name: Show commit messages
+        run: git log origin/Development..HEAD --pretty=format:"%h %s%n%b%n"
+
+      - name: Show config file
+        run: cat commitlint.config.js
+
+      - name: Lint commits
+        run: >
+          npx commitlint
+          --from=origin/Development
+          --to=HEAD
+          --verbose
+          --config=./commitlint.config.js
