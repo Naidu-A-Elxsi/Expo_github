@@ -5,7 +5,7 @@ on:
      - development
 jobs:
  check_commits:
-   name: ✅ check-commits  # <--- THIS is the name that shows in the UI
+   name: ✅ check-commits-n  # <--- THIS is the name that shows in the UI
    runs-on: ubuntu-latest
    steps:
      - name: Checkout code
