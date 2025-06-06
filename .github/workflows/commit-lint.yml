@@ -1,53 +1,61 @@
 ---
-name: Lint Commit Messages
-
+name: 🚦 Commit Format Check
 on:
-  pull_request:
-    branches:
-      - Development
-
+ pull_request:
+   branches:
+     - development
 jobs:
-  commitlint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Fetch all branches
-        run: git fetch --all
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install commitlint
-        run: "npm install --save-dev @commitlint/{cli,config-conventional}"
-
-      - name: Create commitlint config
-        run: |
-          cat << 'EOF' > commitlint.config.js
-          const headerPattern = /^\[Taurus-\d+\]: .+$/;
-          const bodyPattern = /^([\s\S]+)\n\nSigned-off-by: .+ <.+>$/;
-          module.exports = {
-            rules: {
-              'header-pattern': [2, 'always', headerPattern],
-              'header-max-length': [2, 'always', 100],
-              'body-pattern': [2, 'always', bodyPattern]
-            }
-          };
-          EOF
-
-      - name: Show commit messages
-        run: git log origin/Development..HEAD --pretty=format:"%h %s%n%b%n"
-
-      - name: Show config file
-        run: cat commitlint.config.js
-
-      - name: Lint commits
-        run: >
-          npx commitlint
-          --from=origin/Development
-          --to=HEAD
-          --verbose
-          --config=./commitlint.config.js
+ check-commit-messages:
+   name: 🧪 Validate All Commits in PR
+   runs-on: ubuntu-latest
+   steps:
+     - name: 📥 Checkout PR code
+       uses: actions/checkout@v3
+       with:
+         fetch-depth: 0  # Required to get full commit history
+     - name: 🔍 Validate each commit message in PR
+       run: |
+         echo "🔍 Checking all commits targeting 'development' branch..."
+         BASE_BRANCH="origin/${{ github.base_ref }}"
+         HEAD_BRANCH="HEAD"
+         COMMITS=$(git log $BASE_BRANCH..$HEAD_BRANCH --pretty=format:"%H")
+         echo "$COMMITS" > commit_list.txt
+         VALID=true
+         while read -r commit; do
+           echo "🔸 Checking commit: $commit"
+           COMMIT_MSG=$(git log -1 --pretty=%B "$commit")
+           echo "🔹 Commit message:"
+           echo "--------------------"
+           echo "$COMMIT_MSG"
+           echo "--------------------"
+           echo "$COMMIT_MSG" | grep -Eq "^\[Taurus-[0-9]+\]: .+" || {
+             echo "❌ [$commit] Invalid summary format: should start with [Taurus-<number>]:"
+             VALID=false
+           }
+           echo "$COMMIT_MSG" | grep -q "Issue:" || {
+             echo "❌ [$commit] Missing 'Issue:' section"
+             VALID=false
+           }
+           echo "$COMMIT_MSG" | grep -q "RootCause:" || {
+             echo "❌ [$commit] Missing 'RootCause:' section"
+             VALID=false
+           }
+           echo "$COMMIT_MSG" | grep -q "Fix:" || {
+             echo "❌ [$commit] Missing 'Fix:' section"
+             VALID=false
+           }
+           echo "$COMMIT_MSG" | grep -q "Testing:" || {
+             echo "❌ [$commit] Missing 'Testing:' section"
+             VALID=false
+           }
+           echo "$COMMIT_MSG" | grep -q "Signed-off-by:" || {
+             echo "❌ [$commit] Missing 'Signed-off-by:' line"
+             VALID=false
+           }
+         done < commit_list.txt
+         if [ "$VALID" = false ]; then
+           echo "❌ One or more commits did not meet the format requirements."
+           exit 1
+         else
+           echo "✅ All commits are valid."
+         fi
