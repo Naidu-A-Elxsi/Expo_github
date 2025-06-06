@@ -27,7 +27,7 @@ jobs:
       - name: Create commitlint config
         run: |
           cat << 'EOF' > commitlint.config.js
-          const headerPattern = /^\[Taurus-\d+\]: .+$/;
+          const headerPattern = /^\\[Taurus-\\d+\\]: .+$/;
           const bodyPattern = /^([\s\S]+)\n\nSigned-off-by: .+ <.+>$/;
           module.exports = {
             rules: {
