@@ -7,7 +7,7 @@ on:
       - Development
 
 jobs:
-  commitlint:
+  commitlint_n:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
