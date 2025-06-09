@@ -44,10 +44,14 @@ jobs:
       - name: Show config file
         run: cat commitlint.config.js
 
+      - name: Fetch base and head branches
+        run: |
+          git fetch origin $GITHUB_BASE_REF $GITHUB_HEAD_REF
+
       - name: Lint commits
         run: >
           npx commitlint
-          --from=origin/Development
-          --to=HEAD
+          --from=$GITHUB_BASE_REF
+          --to=$GITHUB_HEAD_REF
           --verbose
           --config=./commitlint.config.js
