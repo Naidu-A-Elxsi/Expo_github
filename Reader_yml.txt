@@ -1,0 +1,84 @@
+🧾 Workflow Name and Trigger
+
+name: Lint Commit Messages
+
+on:
+  pull_request:
+    branches:
+      - Development
+
+name: Sets the name of the workflow as it appears in the GitHub Actions UI.
+on.pull_request.branches: Triggers this workflow only when a pull request targets the Development branch.
+🧪 Job Definition
+
+jobs:
+  commitlint_n:
+    runs-on: ubuntu-latest
+
+jobs.commitlint_n: Defines a job named commitlint_n.
+runs-on: ubuntu-latest: Runs the job on the latest Ubuntu runner provided by GitHub.
+🧩 Steps in the Job
+1. Checkout the PR Code
+
+- name: Checkout PR branch
+  uses: actions/checkout@v3
+  with:
+    fetch-depth: 0
+
+Checks out the code from the pull request.
+fetch-depth: 0 ensures the full Git history is available (needed for commit linting across commits).
+2. Cache npm Dependencies
+
+- name: Cache npm dependencies
+  uses: actions/cache@v3
+  with:
+    path: ~/.npm
+    key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      ${{ runner.os }}-node-
+
+Speeds up workflow runs by caching npm packages.
+Uses the hash of package-lock.json to determine cache validity.
+3. Set Up Node.js
+
+- name: Set up Node.js
+  uses: actions/setup-node@v3
+ -version: '18'
+
+Installs Node.js version 18 on the runner.
+4. Install Commitlint
+
+- name: Install commitlint
+  run: npm-\d+\]: .+$/,
+          headerCorrespondence: ['type']
+        }
+      },
+      rules: {
+        'header-max-length': [2, 'always', 100],
+        'body-leading-blank': [2, 'always'],
+        'footer-leading-blank': [2, 'always'],
+        'signed-off-by': [2, 'always', 'Signed-off-by:']
+      }
+    };
+    EOF
+
+Dynamically creates a commitlint.config.js file.
+Enforces:
+Header format: [Taurus-123]: message
+Max header length: 100 characters
+Blank lines before body/footer
+Presence of Signed-off-by: in the footer
+6. Run Commitlint on PR Commits
+
+- name: Lint commits in PR
+  run: |
+    echo "Base: ${{ github.event.pull_request.base.sha }}"
+    echo "Head: ${{ github.event.pull_request.head.sha }}"
+    npx commitlint \
+      --from=${{ github.event.pull_request.base.sha }} \
+      --to=${{ github.event.pull_request.head.sha }} \
+      --verbose \
+      --config=./commitlint.config.js
+
+Runs commitlint on all commits between the base and head of the PR.
+Uses the custom config file created earlier.
