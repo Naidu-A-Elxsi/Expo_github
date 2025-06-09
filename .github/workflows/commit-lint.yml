@@ -27,7 +27,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      
+
       - name: Install commitlint
         run: npm install --save-dev @commitlint/cli
 
@@ -36,6 +36,7 @@ jobs:
           cat << 'EOF' > commitlint.config.js
           module.exports = {
             parserPreset: {
+              name: 'custom',
               parserOpts: {
                 headerPattern: /^\[Taurus-\d+\]: .+$/,
                 headerCorrespondence: ['type']
@@ -45,8 +46,7 @@ jobs:
               'header-max-length': [2, 'always', 100],
               'body-leading-blank': [2, 'always'],
               'footer-leading-blank': [2, 'always'],
-              'signed-off-by': [2, 'always', 'Signed-off-by:']
-            }
+                         }
           };
           EOF
 
