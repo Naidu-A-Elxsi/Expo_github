@@ -21,16 +21,23 @@ jobs:
           node-version: '18'
 
       - name: Install commitlint
-        run: npm install --save-dev @commitlint/{cli,config-conventional}
+        run: npm install --save-dev @commitlint/cli
 
       - name: Create commitlint config
         run: |
           cat << 'EOF' > commitlint.config.js
           module.exports = {
-            extends: ['@commitlint/config-conventional'],
+            parserPreset: {
+              parserOpts: {
+                headerPattern: /^\[Taurus-\d+\]: .+$/,
+                headerCorrespondence: ['type'],
+              },
+            },
             rules: {
-              'type-enum': [2, 'always', ['feat', 'fix', 'chore', 'docs', 'refactor', 'test']],
-              'scope-empty': [2, 'never'],
+              'header-pattern': [2, 'always', /^\[Taurus-\d+\]: .+$/],
+              'header-max-length': [2, 'always', 100],
+              'body-leading-blank': [2, 'always'],
+              'footer-leading-blank': [2, 'always'],
               'signed-off-by': [2, 'always', 'Signed-off-by:']
             }
           };
@@ -45,4 +52,3 @@ jobs:
             --to=${{ github.event.pull_request.head.sha }} \
             --verbose \
             --config=./commitlint.config.js
-
