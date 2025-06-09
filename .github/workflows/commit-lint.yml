@@ -13,7 +13,7 @@ jobs:
       - name: Checkout PR branch
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch full history for commit comparison
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -30,7 +30,7 @@ jobs:
             extends: ['@commitlint/config-conventional'],
             rules: {
               'type-enum': [2, 'always', ['feat', 'fix', 'chore', 'docs', 'refactor', 'test']],
-              'scope-pattern': [2, 'always', /^Taurus-\d+$/],
+              'scope-empty': [2, 'never'],
               'signed-off-by': [2, 'always', 'Signed-off-by:']
             }
           };
