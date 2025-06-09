@@ -27,8 +27,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-
-      install --save-dev @commitlint/cli
+      
+      - name: Install commitlint
+        run: install --save-dev @commitlint/cli
 
       - name: Create commitlint config
         run: |
