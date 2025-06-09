@@ -33,18 +33,20 @@ jobs:
 
       - name: Create commitlint config
         run: |
-          {
+          cat << 'EOF' > commitlint.config.js
+          module.exports = {
+            parserPreset: {
               name: 'custom',
               parserOpts: {
-                headerPattern: /^\\[Taurus-\\d+\\]: .+$/,
+                headerPattern: /^\[Taurus-\d+\]: .+$/,
                 headerCorrespondence: ['type']
               }
             },
             rules: {
-              'header-pattern': [2, 'always', /^\\[Taurus-\\d+\\]: .+$/],
+              'header-pattern': [2, 'always', /^\[Taurus-\d+\]: .+$/],
               'header-max-length': [2, 'always', 100],
               'body-leading-blank': [2, 'always'],
-              'footer-leading-blank': [2, 'always'],
+             -leading-blank': [2, 'always'],
               'signed-off-by': [2, 'always', 'Signed-off-by:']
             }
           };
