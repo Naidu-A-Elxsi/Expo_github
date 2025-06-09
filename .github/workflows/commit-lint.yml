@@ -3,7 +3,7 @@ name: Lint Commit Messages
 on:
   pull_request:
     branches:
-      - Development  # Make sure this matches your actual branch name exactly
+      - Development
 
 jobs:
   commitlint_n:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout PR branch
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch full history for commit comparison
+          fetch-depth: 0
 
       - name: Cache npm dependencies
         uses: actions/cache@v3
@@ -24,6 +24,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
 
@@ -37,10 +38,13 @@ jobs:
             parserPreset: {
               parserOpts: {
                 headerPattern: /^\[Taurus-\d+\]: .+$/,
-                headerCorrespondence: ['type'],
-             header-max-length': [2, 'always', 100],
+                headerCorrespondence: ['type']
+              }
+            },
+            rules: {
+              'header-max-length': [2, 'always', 100],
               'body-leading-blank': [2, 'always'],
-              'footer-leading-blank': [2, 'always'],
+              'footer2, 'always'],
               'signed-off-by': [2, 'always', 'Signed-off-by:']
             }
           };
