@@ -1,4 +1,3 @@
----
 name: Lint Commit Messages
 
 on:
@@ -9,45 +8,54 @@ on:
 jobs:
   commitlint_n:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
-      - name: Fetch all branches
-        run: git fetch --all
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-
+      
       - name: Install commitlint
-        run: "npm install --save-dev @commitlint/{cli,config-conventional}"
+        run: npm install --save-dev @commitlint/cli
 
       - name: Create commitlint config
         run: |
           cat << 'EOF' > commitlint.config.js
-          const headerPattern = /^\[Taurus-\d+\]: .+$/;
-          const bodyPattern = /^([\s\S]+)\n\nSigned-off-by: .+ <.+>$/;
           module.exports = {
+            parserPreset: {
+              parserOpts: {
+                headerPattern: /^\[Taurus-\d+\]: .+$/,
+                headerCorrespondence: ['type']
+              }
+            },
             rules: {
-              'header-pattern': [2, 'always', headerPattern],
               'header-max-length': [2, 'always', 100],
-              'body-pattern': [2, 'always', bodyPattern]
+              'body-leading-blank': [2, 'always'],
+              'footer-leading-blank': [2, 'always'],
+              'signed-off-by': [2, 'always', 'Signed-off-by:']
             }
           };
           EOF
 
-      - name: Show commit messages
-        run: git log origin/Development..HEAD --pretty=format:"%h %s%n%b%n"
-
-      - name: Show config file
-        run: cat commitlint.config.js
-
-      - name: Lint commits
-        run: >
-          npx commitlint
-          --from=origin/Development
-          --to=HEAD
-          --verbose
-          --config=./commitlint.config.js
+      - name: Lint commits in PR
+        run: |
+          echo "Base: ${{ github.event.pull_request.base.sha }}"
+          echo "Head: ${{ github.event.pull_request.head.sha }}"
+          npx commitlint \
+            --from=${{ github.event.pull_request.base.sha }} \
+            --to=${{ github.event.pull_request.head.sha }} \
+            --verbose \
+            --config=./commitlint.config.js
