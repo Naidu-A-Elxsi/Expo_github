@@ -21,11 +21,7 @@ jobs:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
+            $        with:
           node-version: '18'
 
       - name: Install commitlint
@@ -41,7 +37,9 @@ jobs:
                 headerPattern: /^\[Taurus-\d+\]: .+$/,
                 headerCorrespondence: ['type']
               }
-                         'body-leading-blank': [2, 'always'],
+            },
+           -max-length': [2, 'always', 100],
+              'body-leading-blank': [2, 'always'],
               'footer-leading-blank': [2, 'always'],
               'signed-off-by': [2, 'always', 'Signed-off-by:']
             }
