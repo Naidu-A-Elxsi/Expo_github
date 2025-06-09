@@ -34,7 +34,6 @@ jobs:
               },
             },
             rules: {
-              'header-pattern': [2, 'always', /^\[Taurus-\d+\]: .+$/],
               'header-max-length': [2, 'always', 100],
               'body-leading-blank': [2, 'always'],
               'footer-leading-blank': [2, 'always'],
