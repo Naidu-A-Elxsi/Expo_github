@@ -1,4 +1,3 @@
----
 name: Lint Commit Messages
 
 on:
@@ -7,14 +6,14 @@ on:
       - Development
 
 jobs:
-  commitlint:
+  commitlint_n:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Important: fetch full history
+          fetch-depth: 0  # Fetch full history for commit comparison
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -27,13 +26,11 @@ jobs:
       - name: Create commitlint config
         run: |
           cat << 'EOF' > commitlint.config.js
-          const headerPattern = /^\[Taurus-\d+\]: .+$/;
-          const bodyPattern = /^([\s\S]+)\n\nSigned-off-by: .+ <.+>$/;
           module.exports = {
             rules: {
-              'header-pattern': [2, 'always', headerPattern],
+              'header-pattern': [2, 'always', /^\[Taurus-\d+\]: .+$/],
               'header-max-length': [2, 'always', 100],
-              'body-pattern': [2, 'always', bodyPattern]
+              'signed-off-by': [2, 'always', 'Signed-off-by:']
             }
           };
           EOF
@@ -42,4 +39,8 @@ jobs:
         run: |
           echo "Base: ${{ github.event.pull_request.base.sha }}"
           echo "Head: ${{ github.event.pull_request.head.sha }}"
-          npx commitlint --from=${{ github.event.pull_request.base.sha }} --to=${{ github.event.pull_request.head.sha }} --verbose --config=./commitlint.config.js
+          npx commitlint \
+            --from=${{ github.event.pull_request.base.sha }} \
+            --to=${{ github.event.pull_request.head.sha }} \
+            --verbose \
+            --config=./commitlint.config.js
