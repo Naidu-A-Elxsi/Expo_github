@@ -1,0 +1,16 @@
+extends:
+  - '@commitlint/config-conventional'
+ 
+parserPreset:
+  parserOpts:
+    headerPattern: '^(TAURUS-(\\d+)): (.+)$'
+    headerCorrespondence:
+      - ticket
+      - subject
+ 
+plugins:
+  - ./commitlint-plugin-taurus.js
+ 
+rules:
+  'taurus-ticket-format': [2, 'always']
+  header-max-length: [2, 'always', 100]
