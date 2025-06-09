@@ -46,7 +46,8 @@ jobs:
 
       - name: Fetch base and head branches
         run: |
-          git fetch origin $GITHUB_BASE_REF $GITHUB_HEAD_REF
+          git fetch origin $GITHUB_BASE_REF: $GITHUB_BASE_REF
+          git fetch orogin $GITHUB_HEAD_REF: $GITHUB_HEAD_REF
 
       - name: Lint commits
         run: >
