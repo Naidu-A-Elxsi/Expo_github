@@ -7,14 +7,14 @@ on:
       - Development
 
 jobs:
-  commitlint_n:
+  commitlint:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
-      - name: Fetch all branches
-        run: git fetch --all
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Important: fetch full history
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -22,7 +22,7 @@ jobs:
           node-version: '18'
 
       - name: Install commitlint
-        run: "npm install --save-dev @commitlint/{cli,config-conventional}"
+        run: npm install --save-dev @commitlint/{cli,config-conventional}
 
       - name: Create commitlint config
         run: |
@@ -38,22 +38,8 @@ jobs:
           };
           EOF
 
-      - name: Show commit messages
-        run: git log origin/Development..HEAD --pretty=format:"%h %s%n%b%n"
-
-      - name: Show config file
-        run: cat commitlint.config.js
-
-      - name: Fetch base and head branches
+      - name: Lint commits in PR
         run: |
-          git fetch origin $GITHUB_BASE_REF: $GITHUB_BASE_REF
-          git fetch origin $GITHUB_HEAD_REF: $GITHUB_HEAD_REF
-          git checkout $GITHUB_HEAD_REF
-
-      - name: Lint commits
-        run: >
-          npx commitlint
-          --from=$GITHUB_BASE_REF
-          --to=HEAD
-          --verbose
-          --config=./commitlint.config.js
+          echo "Base: ${{ github.event.pull_request.base.sha }}"
+          echo "Head: ${{ github.event.pull_request.head.sha }}"
+          npx commitlint --from=${{ github.event.pull_request.base.sha }} --to=${{ github.event.pull_request.head.sha }} --verbose --config=./commitlint.config.js
