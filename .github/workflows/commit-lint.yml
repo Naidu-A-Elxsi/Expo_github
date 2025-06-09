@@ -28,8 +28,7 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install commitlint
-        run: npm install --save-dev @commitlint/cli
+      install --save-dev @commitlint/cli
 
       - name: Create commitlint config
         run: |
@@ -44,7 +43,7 @@ jobs:
             rules: {
               'header-max-length': [2, 'always', 100],
               'body-leading-blank': [2, 'always'],
-              'footer2, 'always'],
+              'footer-leading-blank': [2, 'always'],
               'signed-off-by': [2, 'always', 'Signed-off-by:']
             }
           };
