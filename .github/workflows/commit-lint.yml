@@ -15,47 +15,49 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Cache npm dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+      - name: Fetch all branches
+        run: git fetch origin +refs/heads/*:refs/remotes/origin/*
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install commitlint
-        run: npm install --save-dev @commitlint/cli
-
-      - name: Create commitlint config
+      - name: Check commit format, body, and sign-off
         run: |
-          cat << 'EOF' > commitlint.config.js
-          module.exports = {
-            parserPreset: {
-              name: 'custom',
-              parserOpts: {
-                headerPattern: /^\[Taurus-\d+\]: .+$/,
-                headerCorrespondence: ['type']
-              }
-            },
-            rules: {
-              'header-max-length': [2, 'always', 100],
-              'body-leading-blank': [2, 'always'],
-              'footer-leading-blank': [2, 'always'],
-                         }
-          };
-          EOF
+          RET=0
+          BASE_BRANCH="${{ github.base_ref }}"
 
-      - name: Lint commits in PR
-        run: |
-          echo "Base: ${{ github.event.pull_request.base.sha }}"
-          echo "Head: ${{ github.event.pull_request.head.sha }}"
-          npx commitlint \
-            --from=${{ github.event.pull_request.base.sha }} \
-            --to=${{ github.event.pull_request.head.sha }} \
-            --verbose \
-            --config=./commitlint.config.js
+          echo "Checking commits from origin/$BASE_BRANCH to HEAD"
+
+          for commit in $(git rev-list origin/$BASE_BRANCH..HEAD); do
+            echo "🔍 Checking commit: $commit"
+
+            # Check commit subject format
+            subject="$(git show -s --format=%s $commit)"
+            if echo "$subject" | grep -qE '^\[TAURUS-[0-9]+\]: .+'; then
+              echo "✅ Valid subject format: $subject"
+            else
+              echo "❌ Invalid subject format: $subject"
+              RET=1
+            fi
+
+            # Check commit body sections
+            body="$(git show -s --format=%b $commit)"
+            for section in "Issue:" "Root Cause:" "Fix:" "Testing:"; do
+              if echo "$body" | grep -q "$section"; then
+                echo "✅ '$section' section found"
+              else
+                echo "❌ Missing '$section' section in commit body"
+                RET=1
+              fi
+            done
+
+            # Check Signed-off-by line
+            author_name="$(git show -s --format=%aN $commit)"
+            author_email="$(git show -s --format=%aE $commit)"
+            expected_sob="Signed-off-by: $author_name <$author_email>"
+            if echo "$body" | grep -qF "$expected_sob"; then
+              echo "✅ Signed-off-by line is correct"
+            else
+              echo "❌ Signed-off-by line is missing or incorrect (expected: '$expected_sob')"
+              RET=1
+            fi
+          done
+
+          exit $RET
