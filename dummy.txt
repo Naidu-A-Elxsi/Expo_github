@@ -1,3 +1,4 @@
+adapureddy-n@42485-448383:~/Expo_github$ cat .github/workflows/commit-lint.yml
 ---
 name: Commit Lint
 
@@ -62,3 +63,4 @@ jobs:
           done
 
           exit $RET
+
