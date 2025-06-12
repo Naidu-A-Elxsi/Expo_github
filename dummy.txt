@@ -1,0 +1,66 @@
+adapureddy-n@42485-448383:~/Expo_github$ cat .github/workflows/commit-lint.yml
+---
+name: Commit Lint
+
+on:
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  commitlint_n:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all branches
+        run: git fetch origin +refs/heads/*:refs/remotes/origin/*
+
+      - name: Check commit format, body, and sign-off
+        run: |
+          RET=0
+          BASE_BRANCH="${{ github.base_ref }}"
+
+          echo "Checking commits from origin/$BASE_BRANCH to HEAD"
+
+          for commit in $(git rev-list origin/$BASE_BRANCH..HEAD); do
+            echo "🔍 Checking commit: $commit"
+
+            # Check commit subject format
+            subject="$(git show -s --format=%s $commit)"
+            if echo "$subject" | grep -qE '^\[TAURUS-[0-9]+\]: .+'; then
+              echo "✅ Valid subject format: $subject"
+            else
+              echo "❌ Invalid subject format: $subject"
+              RET=1
+            fi
+
+            # Check commit body sections
+            body="$(git show -s --format=%b $commit)"
+            for section in "Issue:" "Root Cause:" "Fix:" "Testing:"; do
+              if echo "$body" | grep -q "$section"; then
+                echo "✅ '$section' section found"
+              else
+                echo "❌ Missing '$section' section in commit body"
+                RET=1
+              fi
+            done
+
+            # Check Signed-off-by line
+            author_name="$(git show -s --format=%aN $commit)"
+            author_email="$(git show -s --format=%aE $commit)"
+            expected_sob="Signed-off-by: $author_name <$author_email>"
+            if echo "$body" | grep -qF "$expected_sob"; then
+              echo "✅ Signed-off-by line is correct"
+            else
+              echo "❌ Signed-off-by line is missing or incorrect (expected: '$expected_sob')"
+              RET=1
+            fi
+          done
+
+          exit $RET
+
