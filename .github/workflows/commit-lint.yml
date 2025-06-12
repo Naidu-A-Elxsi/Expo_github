@@ -7,7 +7,7 @@ on:
       - development
 
 jobs:
-  commitlint_n:
+  test:
     runs-on: ubuntu-latest
 
     steps:
