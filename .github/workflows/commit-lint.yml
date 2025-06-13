@@ -35,7 +35,6 @@ jobs:
               continue
             fi
 
-
             # Check commit subject format
             subject="$(git show -s --format=%s $commit)"
             if echo "$subject" | grep -qE '^\[TAURUS-[0-9]+\]: .+'; then
