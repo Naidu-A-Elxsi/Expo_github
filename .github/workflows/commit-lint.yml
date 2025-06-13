@@ -26,8 +26,14 @@ jobs:
 
           echo "Checking commits from origin/$BASE_BRANCH to HEAD"
 
-          for commit in $(git rev-list origin/$BASE_BRANCH..HEAD); do
+          for commit in $(git log --pretty=format:"%H" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}); do
             echo "🔍 Checking commit: $commit"
+
+            # Skip merge commits
+            if git show --format='%P' -s $commit | grep -qF ' '; then
+              echo "ℹ️ Skipping merge commit: $commit"
+              continue
+            fi
 
             # Check commit subject format
             subject="$(git show -s --format=%s $commit)"
